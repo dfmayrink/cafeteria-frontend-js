@@ -59,6 +59,12 @@ const slice = createSlice({
       state.product = action.payload;
     },
 
+    // POST PRODUCT
+    postProductSuccess(state, action) {
+      state.isLoading = false;
+      state.products.push(action.payload);
+    },
+
     //  SORT & FILTER PRODUCTS
     sortByProducts(state, action) {
       state.sortBy = action.payload;
@@ -216,6 +222,21 @@ export function getProducts() {
     try {
       const response = await axios.get('/products');
       dispatch(slice.actions.getProductsSuccess(response.data.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+
+// ----------------------------------------------------------------------
+
+export function postProducts(data) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      debugger
+      const response = await axios.post('/products', data);
+      dispatch(slice.actions.postProductSuccess(response.data.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }

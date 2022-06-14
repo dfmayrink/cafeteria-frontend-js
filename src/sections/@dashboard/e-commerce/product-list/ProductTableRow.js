@@ -52,7 +52,7 @@ export default function ProductTableRow({ row, selected, onEditRow, onSelectRow,
         </Typography>
       </TableCell>
 
-      <TableCell>{fDate(createdAt)}</TableCell>
+      <TableCell>{fDate(createdAt || new Date())}</TableCell>
 
       <TableCell align="center">
         <Label
