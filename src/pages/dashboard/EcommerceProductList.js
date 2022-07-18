@@ -90,7 +90,8 @@ export default function EcommerceProductList() {
   }, [dispatch]);
 
   useEffect(() => {
-    if (products.length) {
+
+    if (products && products.length) {
       setTableData(products);
     }
   }, [products]);

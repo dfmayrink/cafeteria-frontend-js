@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import {createSlice, createAsyncThunk, isAnyOf} from '@reduxjs/toolkit';
 import sum from 'lodash/sum';
 import uniqBy from 'lodash/uniqBy';
 // utils
@@ -191,6 +191,20 @@ const slice = createSlice({
       state.checkout.total = state.checkout.subtotal - state.checkout.discount + shipping;
     },
   },
+  extraReducers:
+  (builder) => {
+    builder
+      .addCase(postProduct.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.products.push(action.payload)
+      })
+      .addMatcher(isAnyOf(postProduct.pending), (state) => {
+        state.isLoading = true
+      })
+      .addMatcher(isAnyOf(postProduct.rejected), (state, action) => {
+        state.error = action.error.message
+      })
+}
 });
 
 // Reducer
@@ -221,7 +235,7 @@ export function getProducts() {
     dispatch(slice.actions.startLoading());
     try {
       const response = await axios.get('/products');
-      dispatch(slice.actions.getProductsSuccess(response.data.data));
+      dispatch(slice.actions.getProductsSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }
@@ -232,16 +246,25 @@ export function getProducts() {
 
 export function postProducts(data) {
   return async () => {
+    debugger
     dispatch(slice.actions.startLoading());
     try {
       debugger
       const response = await axios.post('/products', data);
-      dispatch(slice.actions.postProductSuccess(response.data.data));
+      dispatch(slice.actions.postProductSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }
   };
 }
+
+export const postProduct = createAsyncThunk(
+  'product/postProduct',
+  async (data) => {
+    const response = await axios.post('/products', data)
+    return response.data
+  }
+)
 
 // ----------------------------------------------------------------------
 
@@ -249,10 +272,10 @@ export function getProduct(name) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      const response = await axios.get('/api/products/product', {
+      const response = await axios.get('/products/', {
         params: { name },
       });
-      dispatch(slice.actions.getProductSuccess(response.data.product));
+      dispatch(slice.actions.getProductSuccess(response.data));
     } catch (error) {
       console.error(error);
       dispatch(slice.actions.hasError(error));

@@ -3,6 +3,7 @@ import * as Yup from 'yup';
 import { useSnackbar } from 'notistack';
 import { useNavigate } from 'react-router-dom';
 import { useCallback, useEffect, useMemo } from 'react';
+import {useDispatch} from "react-redux";
 // form
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -22,7 +23,7 @@ import {
   RHFRadioGroup,
   RHFUploadMultiFile,
 } from '../../../components/hook-form';
-import {postProducts} from "../../../redux/slices/product";
+import {postProduct, postProducts} from "../../../redux/slices/product";
 
 // ----------------------------------------------------------------------
 
@@ -71,6 +72,8 @@ export default function ProductNewEditForm({ isEdit, currentProduct }) {
   const navigate = useNavigate();
 
   const { enqueueSnackbar } = useSnackbar();
+
+  const dispatch = useDispatch()
 
   const NewProductSchema = Yup.object().shape({
     name: Yup.string().required('Name is required'),
@@ -127,8 +130,7 @@ export default function ProductNewEditForm({ isEdit, currentProduct }) {
 
   const onSubmit = async (data) => {
     try {
-      debugger
-      await postProducts(data);
+      dispatch(postProduct(data));
       reset();
       enqueueSnackbar(!isEdit ? 'Create success!' : 'Update success!');
       navigate(PATH_DASHBOARD.eCommerce.list);
