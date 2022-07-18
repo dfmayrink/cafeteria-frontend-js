@@ -31,6 +31,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { Provider as ReduxProvider } from 'react-redux';
 import { PersistGate } from 'redux-persist/lib/integration/react';
+import { ApolloClient, InMemoryCache, ApolloProvider, gql } from '@apollo/client';
 // @mui
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
@@ -55,22 +56,42 @@ import reportWebVitals from './reportWebVitals';
 
 // ----------------------------------------------------------------------
 
+const client = new ApolloClient({
+  uri: 'http://localhost:8080/graphql',
+  cache: new InMemoryCache(),
+});
+
+client
+.query({
+  query: gql`
+      {
+          employees {
+              id,
+              name
+          }
+      }
+  `,
+})
+.then((result) => console.log(result));
+
 ReactDOM.render(
   <AuthProvider>
     <HelmetProvider>
-      <ReduxProvider store={store}>
-        <PersistGate loading={null} persistor={persistor}>
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <SettingsProvider>
-              <CollapseDrawerProvider>
-                <BrowserRouter>
-                  <App />
-                </BrowserRouter>
-              </CollapseDrawerProvider>
-            </SettingsProvider>
-          </LocalizationProvider>
-        </PersistGate>
-      </ReduxProvider>
+      <ApolloProvider client={client}>
+        <ReduxProvider store={store}>
+          <PersistGate loading={null} persistor={persistor}>
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <SettingsProvider>
+                <CollapseDrawerProvider>
+                  <BrowserRouter>
+                    <App />
+                  </BrowserRouter>
+                </CollapseDrawerProvider>
+              </SettingsProvider>
+            </LocalizationProvider>
+          </PersistGate>
+        </ReduxProvider>
+      </ApolloProvider>
     </HelmetProvider>
   </AuthProvider>,
   document.getElementById('root')
