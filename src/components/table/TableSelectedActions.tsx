@@ -1,19 +1,20 @@
-import PropTypes from 'prop-types';
 // @mui
-import { Checkbox, Typography, Stack } from '@mui/material';
+import {Checkbox, Stack, Typography} from '@mui/material';
+import React, {ReactElement} from "react";
 
 // ----------------------------------------------------------------------
 
-TableSelectedActions.propTypes = {
-  dense: PropTypes.bool,
-  actions: PropTypes.node,
-  rowCount: PropTypes.number,
-  numSelected: PropTypes.number,
-  onSelectAllRows: PropTypes.func,
-  sx: PropTypes.object,
+interface Props {
+  dense?: boolean,
+  actions?: ReactElement,
+  rowCount?: number,
+  numSelected?: number,
+  onSelectAllRows?: (checked) => any,
+  sx?: object,
+  [other: string]: any
 };
 
-export default function TableSelectedActions({ dense, actions, rowCount, numSelected, onSelectAllRows, sx, ...other }) {
+export default function TableSelectedActions({ dense, actions, rowCount, numSelected, onSelectAllRows, sx, ...other }: Props) {
   return (
     <Stack
       direction="row"

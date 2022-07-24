@@ -3,18 +3,20 @@ import PropTypes from 'prop-types';
 import { Box, Typography, Link } from '@mui/material';
 //
 import Breadcrumbs from './Breadcrumbs';
+import React, {ReactElement} from 'react';
 
 // ----------------------------------------------------------------------
 
-HeaderBreadcrumbs.propTypes = {
-  links: PropTypes.array,
-  action: PropTypes.node,
-  heading: PropTypes.string.isRequired,
-  moreLink: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
-  sx: PropTypes.object,
-};
+interface Props {
+  links?: any[]
+  action?: Node | ReactElement
+  heading: string
+  moreLink?: string | string[]
+  sx?: object
+  [other: string] : any
+}
 
-export default function HeaderBreadcrumbs({ links, action, heading, moreLink = '' || [], sx, ...other }) {
+export default function HeaderBreadcrumbs({ links, action, heading, moreLink = '' || [], sx, ...other } : Props) {
   return (
     <Box sx={{ mb: 5, ...sx }}>
       <Box sx={{ display: 'flex', alignItems: 'center' }}>

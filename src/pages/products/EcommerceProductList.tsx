@@ -16,6 +16,7 @@ import {
   TablePagination,
   FormControlLabel,
 } from '@mui/material';
+import {gql, useQuery} from "@apollo/client";
 // redux
 import { useDispatch, useSelector } from '../../redux/store';
 import { getProducts } from '../../redux/slices/product';
@@ -38,6 +39,9 @@ import {
 } from '../../components/table';
 // sections
 import { ProductTableRow, ProductTableToolbar } from '../../sections/@dashboard/e-commerce/product-list';
+import {ALL_PRODUCTS_QUERY} from "../../services/queries/products";
+import React from 'react';
+
 
 // ----------------------------------------------------------------------
 
@@ -79,15 +83,19 @@ export default function EcommerceProductList() {
 
   const dispatch = useDispatch();
 
-  const { products, isLoading } = useSelector((state) => state.product);
-
   const [tableData, setTableData] = useState([]);
 
   const [filterName, setFilterName] = useState('');
 
+  const { loading: isLoading, error, data: products } = useQuery(ALL_PRODUCTS_QUERY)
+
   useEffect(() => {
     dispatch(getProducts());
   }, [dispatch]);
+
+  useEffect(() => {
+    console.log(JSON.stringify(products))
+  }, [products])
 
   useEffect(() => {
 
