@@ -90,17 +90,9 @@ export default function EcommerceProductList() {
   const { loading: isLoading, error, data: products } = useQuery(ALL_PRODUCTS_QUERY)
 
   useEffect(() => {
-    dispatch(getProducts());
-  }, [dispatch]);
-
-  useEffect(() => {
     console.log(JSON.stringify(products))
-  }, [products])
-
-  useEffect(() => {
-
-    if (products && products.length) {
-      setTableData(products);
+    if (products) {
+      setTableData(products.products);
     }
   }, [products]);
 
@@ -125,15 +117,18 @@ export default function EcommerceProductList() {
     navigate(PATH_DASHBOARD.eCommerce.edit(paramCase(id)));
   };
 
-  const dataFiltered = applySortFilter({
-    tableData,
-    comparator: getComparator(order, orderBy),
-    filterName,
-  });
+  // const dataFiltered = applySortFilter({
+  //   tableData,
+  //   comparator: getComparator(order, orderBy),
+  //   filterName,
+  // });
 
   const denseHeight = dense ? 60 : 80;
 
-  const isNotFound = (!dataFiltered.length && !!filterName) || (!isLoading && !dataFiltered.length);
+  // const isNotFound = (!dataFiltered.length && !!filterName) || (!isLoading && !dataFiltered.length);
+
+  if (isLoading) return "...Loading"
+  if (error) return `Error! ${error.message}`
 
   return (
     <Page title="Ecommerce: Product List">
@@ -203,9 +198,8 @@ export default function EcommerceProductList() {
                 />
 
                 <TableBody>
-                  {(isLoading ? [...Array(rowsPerPage)] : dataFiltered)
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((row, index) =>
+                  {tableData &&
+                    tableData.map((row, index) =>
                       row ? (
                         <ProductTableRow
                           key={row.id}
@@ -216,13 +210,13 @@ export default function EcommerceProductList() {
                           onEditRow={() => handleEditRow(row.name)}
                         />
                       ) : (
-                        !isNotFound && <TableSkeleton key={index} sx={{ height: denseHeight }} />
+                        <TableSkeleton key={index} sx={{ height: denseHeight }} />
                       )
                     )}
 
                   <TableEmptyRows height={denseHeight} emptyRows={emptyRows(page, rowsPerPage, tableData.length)} />
 
-                  <TableNoData isNotFound={isNotFound} />
+                  {/*<TableNoData isNotFound={isNotFound} />*/}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -232,7 +226,7 @@ export default function EcommerceProductList() {
             <TablePagination
               rowsPerPageOptions={[5, 10, 25]}
               component="div"
-              count={dataFiltered.length}
+              count={products.length}
               rowsPerPage={rowsPerPage}
               page={page}
               onPageChange={onChangePage}
@@ -254,13 +248,17 @@ export default function EcommerceProductList() {
 // ----------------------------------------------------------------------
 
 function applySortFilter({ tableData, comparator, filterName }) {
-  const stabilizedThis = tableData.map((el, index) => [el, index]);
+  debugger
+  let stabilizedThis = []
+  if (tableData)
+    stabilizedThis = tableData.map((el, index) => [el, index]);
 
   stabilizedThis.sort((a, b) => {
     const order = comparator(a[0], b[0]);
     if (order !== 0) return order;
     return a[1] - b[1];
   });
+
 
   tableData = stabilizedThis.map((el) => el[0]);
 
