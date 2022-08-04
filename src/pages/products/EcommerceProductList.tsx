@@ -1,46 +1,37 @@
-import { paramCase } from 'change-case';
-import { useState, useEffect } from 'react';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import {paramCase} from 'change-case';
+import React, {useEffect, useState} from 'react';
+import {Link as RouterLink, useNavigate} from 'react-router-dom';
 // @mui
 import {
   Box,
-  Card,
-  Table,
   Button,
-  Switch,
-  Tooltip,
-  TableBody,
+  Card,
   Container,
+  FormControlLabel,
   IconButton,
+  Switch,
+  Table,
+  TableBody,
   TableContainer,
   TablePagination,
-  FormControlLabel,
+  Tooltip,
 } from '@mui/material';
-import {gql, useQuery} from "@apollo/client";
+import {useQuery} from "@apollo/client";
 // redux
-import { useDispatch, useSelector } from '../../redux/store';
-import { getProducts } from '../../redux/slices/product';
 // routes
-import { PATH_DASHBOARD } from '../../routes/paths';
+import {PATH_DASHBOARD} from '../../routes/paths';
 // hooks
 import useSettings from '../../hooks/useSettings';
-import useTable, { getComparator, emptyRows } from '../../hooks/useTable';
+import useTable, {emptyRows} from '../../hooks/useTable';
 // components
 import Page from '../../components/Page';
 import Iconify from '../../components/Iconify';
 import Scrollbar from '../../components/Scrollbar';
 import HeaderBreadcrumbs from '../../components/HeaderBreadcrumbs';
-import {
-  TableNoData,
-  TableSkeleton,
-  TableEmptyRows,
-  TableHeadCustom,
-  TableSelectedActions,
-} from '../../components/table';
+import {TableEmptyRows, TableHeadCustom, TableSelectedActions, TableSkeleton,} from '../../components/table';
 // sections
-import { ProductTableRow, ProductTableToolbar } from '../../sections/@dashboard/e-commerce/product-list';
+import {ProductTableRow, ProductTableToolbar} from '../../sections/@dashboard/e-commerce/product-list';
 import {ALL_PRODUCTS_QUERY} from "../../services/queries/products";
-import React from 'react';
 
 
 // ----------------------------------------------------------------------
@@ -81,8 +72,6 @@ export default function EcommerceProductList() {
 
   const navigate = useNavigate();
 
-  const dispatch = useDispatch();
-
   const [tableData, setTableData] = useState([]);
 
   const [filterName, setFilterName] = useState('');
@@ -90,7 +79,6 @@ export default function EcommerceProductList() {
   const { loading: isLoading, error, data: products } = useQuery(ALL_PRODUCTS_QUERY)
 
   useEffect(() => {
-    console.log(JSON.stringify(products))
     if (products) {
       setTableData(products.products);
     }

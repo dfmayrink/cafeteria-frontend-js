@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import * as Yup from 'yup';
 import { useSnackbar } from 'notistack';
 import { useNavigate } from 'react-router-dom';
-import { useCallback, useEffect, useMemo } from 'react';
+import {useCallback, useEffect, useMemo, useReducer} from 'react';
 import {useDispatch} from "react-redux";
 // form
 import { useForm, Controller } from 'react-hook-form';
@@ -24,6 +24,12 @@ import {
   RHFUploadMultiFile,
 } from '../../../components/hook-form';
 import {postProduct, postProducts} from "../../../redux/slices/product";
+import React from 'react';
+import {Category} from "../../../models/Category";
+import {useQuery} from "@apollo/client";
+import {ALL_PRODUCTS_QUERY} from "../../../services/queries/products";
+import {ALL_CATEGORIES_QUERY} from "../../../services/queries/categories";
+import axiosInstance from "../../../utils/axios";
 
 // ----------------------------------------------------------------------
 
@@ -34,10 +40,10 @@ const GENDER_OPTION = [
 ];
 
 const CATEGORY_OPTION = [
-  { group: 'Clothing', classify: ['Shirts', 'T-shirts', 'Jeans', 'Leather'] },
-  { group: 'Tailored', classify: ['Suits', 'Blazers', 'Trousers', 'Waistcoats'] },
-  { group: 'Accessories', classify: ['Shoes', 'Backpacks and bags', 'Bracelets', 'Face masks'] },
-];
+  { name: 'Clothing', classify: ['Shirts', 'T-shirts', 'Jeans', 'Leather'] },
+  { name: 'Tailored', classify: ['Suits', 'Blazers', 'Trousers', 'Waistcoats'] },
+  { name: 'Accessories', classify: ['Shoes', 'Backpacks and bags', 'Bracelets', 'Face masks'] },
+] as Category[];
 
 const TAGS_OPTION = [
   'Toy Story 3',
@@ -68,12 +74,47 @@ ProductNewEditForm.propTypes = {
   currentProduct: PropTypes.object,
 };
 
+const uploadFile = async (file: File, dispatch) => {
+  try {
+    dispatch({type: 'loading'})
+    const formData = new FormData()
+    formData.set('file', file)
+    const response = await axiosInstance.post('/files', formData, {headers: {'Content-type': 'multipart/form-data'}})
+    dispatch({type: 'complete', payload: response.data})
+  } catch (error) {
+    dispatch({type: 'error', error})
+  }
+}
+
+const initialState = {
+  files: [],
+  status: 'idle',
+  message: ''
+}
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'complete':
+      return {files: [...state.files, action.payload], status: 'idle'};
+    case 'loading':
+      return {...state, status: 'loading'};
+    case 'error':
+      return {...state, status: 'error', message: action.error.message}
+    default:
+      throw new Error();
+  }
+}
+
 export default function ProductNewEditForm({ isEdit, currentProduct }) {
   const navigate = useNavigate();
 
   const { enqueueSnackbar } = useSnackbar();
 
   const dispatch = useDispatch()
+
+  const [filesReducer, dispatchFile] = useReducer(reducer, initialState)
+
+  const { loading: loadingCategories, error: errorCategories, data: categories } = useQuery(ALL_CATEGORIES_QUERY)
 
   const NewProductSchema = Yup.object().shape({
     name: Yup.string().required('Name is required'),
@@ -130,6 +171,7 @@ export default function ProductNewEditForm({ isEdit, currentProduct }) {
 
   const onSubmit = async (data) => {
     try {
+      // @ts-ignore
       dispatch(postProduct(data));
       reset();
       enqueueSnackbar(!isEdit ? 'Create success!' : 'Update success!');
@@ -141,7 +183,10 @@ export default function ProductNewEditForm({ isEdit, currentProduct }) {
 
   const handleDrop = useCallback(
     (acceptedFiles) => {
+      debugger
       const images = values.images || [];
+
+      acceptedFiles.map(file => uploadFile(file, dispatchFile))
 
       setValue('images', [
         ...images,
@@ -170,6 +215,9 @@ export default function ProductNewEditForm({ isEdit, currentProduct }) {
         <Grid item xs={12} md={8}>
           <Card sx={{ p: 3 }}>
             <Stack spacing={3}>
+              { filesReducer.status === 'idle'
+                ? filesReducer.files.map(file => file.fileName)
+                : (filesReducer.status === 'loading' ? 'Loading...' : filesReducer.message)}
               <RHFTextField name="name" label="Product Name" />
 
               <div>
@@ -216,8 +264,8 @@ export default function ProductNewEditForm({ isEdit, currentProduct }) {
                 </div>
 
                 <RHFSelect name="category" label="Category">
-                  {CATEGORY_OPTION.map((category) => (
-                    <optgroup key={category.group} label={category.group}>
+                  {!loadingCategories && categories.categories.map((category) => (
+                    <optgroup key={category.name} label={category.name}>
                       {category.classify.map((classify) => (
                         <option key={classify} value={classify}>
                           {classify}
